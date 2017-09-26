@@ -229,7 +229,7 @@ def deployProject (String chartFolder, String registry, String image, String ima
     container ('helm') {
       sh "helm init --client-only"
       def deployCommand = "helm upgrade --install --set image.repository=${registry}${image}"
-      if (imageTag) deployCommand += ",image.tag=\\"${imageTag}\\""
+      if (imageTag) deployCommand += ",image.tag=${imageTag}"
       if (fileExists("chart/overrides.yaml")) {
         deployCommand += " --values chart/overrides.yaml"
       }
