@@ -177,7 +177,8 @@ def call(body) {
           // We're moving to Helm-only deployments. Use Helm to install a deployment to test against.
           container ('helm') {
             sh "helm init --client-only"
-            def deployCommand = "helm install ${realChartFolder} --wait --set test=true,image.repository=${registry}${image},image.tag=\'!!string ${imageTag}\' --namespace ${testNamespace} --name ${tempHelmRelease}"
+            strImageTag = "!!string ${imageTag}"
+            def deployCommand = "helm install ${realChartFolder} --wait --set test=true,image.repository=${registry}${image},image.tag=${strImageTag} --namespace ${testNamespace} --name ${tempHelmRelease}"
 
             if (fileExists("chart/overrides.yaml")) {
               deployCommand += " --values chart/overrides.yaml"
@@ -230,7 +231,10 @@ def deployProject (String chartFolder, String registry, String image, String ima
     container ('helm') {
       sh "helm init --client-only"
       def deployCommand = "helm upgrade --install --set image.repository=${registry}${image}"
-      if (imageTag) deployCommand += ",image.tag=\'!!string ${imageTag}\'"
+      if (imageTag) {
+        strImageTag = "!!string ${imageTag}"
+        deployCommand += ",image.tag=${strImageTag}"
+      }
       if (fileExists("chart/overrides.yaml")) {
         deployCommand += " --values chart/overrides.yaml"
       }
