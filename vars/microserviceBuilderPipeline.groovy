@@ -234,7 +234,7 @@ def deployProject (String chartFolder, String registry, String image, String ima
       def writeRegFileCommand = "echo -e \"image:\n  repository: ${registry}${image}\n  tag: ${imageTag}\" > mb-registry-image.yaml"
       def deployCommand = "helm upgrade --install -f mb-registry-image.yaml"
       if (imageTag) {
-        writeRegFileCommand = "echo -e "image:\\n  repository: ${registry}${image}\\n  tag: ${imageTag}" > mb-registry-image.yaml"
+        writeRegFileCommand = "echo -e \"image:\n  repository: ${registry}${image}\n  tag: ${imageTag}\" > mb-registry-image.yaml"
       }
       if (fileExists("chart/overrides.yaml")) {
         deployCommand = "helm upgrade --install -f chart/overrides.yaml -f mb-registry-image.yaml"
