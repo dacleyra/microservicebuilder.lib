@@ -183,8 +183,12 @@ def call(body) {
             if (fileExists("chart/overrides.yaml")) {
               deployCommand = "helm install ${realChartFolder} --wait -f chart/overrides.yaml -f mb-registry-image.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             }
+            sh "helm status ${tempHelmRelease}"
+            sh "kubectl get all --namespace ${testNamespace}"
             sh writeRegFileCommand
             sh deployCommand
+            sh "helm status ${tempHelmRelease}"
+            sh "kubectl get all --namespace ${testNamespace}"
           }
 
           container ('maven') {
@@ -196,10 +200,8 @@ def call(body) {
               if (!debug) {
                 container ('kubectl') {
                   sh "kubectl delete namespace ${testNamespace}"
-                  if (fileExists(realChartFolder)) {
-                    container ('helm') {
-                      sh "helm delete ${tempHelmRelease} --purge"
-                    }
+                  container ('helm') {
+                    sh "helm delete ${tempHelmRelease} --purge"
                   }
                 }
               }
