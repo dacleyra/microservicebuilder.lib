@@ -177,12 +177,13 @@ def call(body) {
           // We're moving to Helm-only deployments. Use Helm to install a deployment to test against.
           container ('helm') {
             sh "helm init --client-only"
-            strImageTag = "!!string ${imageTag}"
-            def deployCommand = "helm install ${realChartFolder} --wait --set test=true,image.repository=${registry}${image},image.tag=${strImageTag} --namespace ${testNamespace} --name ${tempHelmRelease}"
+            def writeRegFileCommand = "echo -e "image:\n  repository: ${registry}${image}\n  tag: ${imageTag}" > mb-registry-image.yaml"
+            def deployCommand = "helm install ${realChartFolder} --wait -f mb-registry-image.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
 
             if (fileExists("chart/overrides.yaml")) {
-              deployCommand += " --values chart/overrides.yaml"
+              deployCommand = "helm install ${realChartFolder} --wait -f chart/overrides.yaml -f mb-registry-image.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             }
+            sh writeRegFileCommand
             sh deployCommand
           }
 
@@ -230,17 +231,18 @@ def deployProject (String chartFolder, String registry, String image, String ima
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
       sh "helm init --client-only"
-      def deployCommand = "helm upgrade --install --set image.repository=${registry}${image}"
+      def writeRegFileCommand = "echo -e "image:\n  repository: ${registry}${image}" > mb-registry-image.yaml"
+      def deployCommand = "helm upgrade --install -f mb-registry-image.yaml"
       if (imageTag) {
-        strImageTag = "!!string ${imageTag}"
-        deployCommand += ",image.tag=${strImageTag}"
+        writeRegFileCommand = "echo -e "image:\n  repository: ${registry}${image}\n  tag: ${imageTag}" > mb-registry-image.yaml"
       }
       if (fileExists("chart/overrides.yaml")) {
-        deployCommand += " --values chart/overrides.yaml"
+        deployCommand = "helm upgrade --install -f chart/overrides.yaml -f mb-registry-image.yaml"
       }
       if (namespace) deployCommand += " --namespace ${namespace}"
       def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${env.BRANCH_NAME}"
       deployCommand += " ${releaseName} ${chartFolder}"
+      sh writeRegFileCommand
       sh deployCommand
     }
   } else if (fileExists(manifestFolder)) {
