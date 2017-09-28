@@ -183,12 +183,12 @@ def call(body) {
             if (fileExists("chart/overrides.yaml")) {
               deployCommand = "helm install ${realChartFolder} --wait -f chart/overrides.yaml -f mb-registry-image.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             }
-            sh "helm status ${tempHelmRelease}"
-            sh "kubectl get all --namespace ${testNamespace}"
+            sh "set +e; set +x; helm status ${tempHelmRelease}"
+            sh "set +e; set +x; kubectl get all --namespace ${testNamespace}"
             sh writeRegFileCommand
             sh deployCommand
-            sh "helm status ${tempHelmRelease}"
-            sh "kubectl get all --namespace ${testNamespace}"
+            sh "set +e; set +x; helm status ${tempHelmRelease}"
+            sh "set +e; set +x; kubectl get all --namespace ${testNamespace}"
           }
 
           container ('maven') {
