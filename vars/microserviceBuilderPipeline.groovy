@@ -175,6 +175,9 @@ def call(body) {
             }
           }
           // We're moving to Helm-only deployments. Use Helm to install a deployment to test against.
+          container ('kubectl') {
+            sh "set +e; set +x; kubectl get all --namespace ${testNamespace}; exit 0"
+          }
           container ('helm') {
             sh "helm init --client-only"
             def writeRegFileCommand = "echo -e \"image:\n  repository: ${registry}${image}\n  tag: ${imageTag}\" > mb-registry-image.yaml"
@@ -184,10 +187,11 @@ def call(body) {
               deployCommand = "helm install ${realChartFolder} --wait -f chart/overrides.yaml -f mb-registry-image.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             }
             sh "set +e; set +x; helm status ${tempHelmRelease}; exit 0"
-            sh "set +e; set +x; kubectl get all --namespace ${testNamespace}; exit 0"
             sh writeRegFileCommand
             sh deployCommand
             sh "set +e; set +x; helm status ${tempHelmRelease}; exit 0"
+          }
+          container ('kubectl') {
             sh "set +e; set +x; kubectl get all --namespace ${testNamespace}; exit 0"
           }
 
